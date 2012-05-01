@@ -1,16 +1,18 @@
 # ZK::Group
 
-A Group implementation for ZK. Why do you need ZK::Group? Let's say you have a bunch of services. One might even be so bold as to call it "a cluster" (especially in the presence of CTOs or investors).
+A Group implementation for [ZK][]. Why do you need ZK::Group? Let's say you have a bunch of services. One might even be so bold as to call it "a cluster" (especially in the presence of CTOs or investors).
 
 If you'd like to:
 
-* Know who is in the group
+* Know who in the group is currently available
 * Be notified when the members of the group have changed
 * What changed about the list of members
 
 Then ZK::Group is the tool for you. Intentionally lightweight. Use it as-is or subclass and extend for _even more fun_.
 
 _"You'll love it. It's a way of life." - The Central Scrutinizer_
+
+[ZK]: https://github.com/slyphon/zk
 
 ## Installation
 
