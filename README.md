@@ -1,9 +1,17 @@
 # ZK::Group
 
-A Group implementation for ZK. Provides Membership, joining, leaving, notification to members of the group when those events occur.
+A Group implementation for ZK. Why do you need ZK::Group? You have a bunch of services? One might even be so bold as to call it "a cluster" (especially in the presence of CTOs or investors)? 
 
-> "You'll love it. It's a way of life."
->  - C. Scrutinizer
+If you'd like to know:
+
+* Who is in the group
+* When the members of the group have changed
+* What changed about the list of members
+
+Then ZK::Group is the tool for you. Intentionally lightweight. Use it as-is or subclass and extend for _even more fun_.
+
+"You'll love it. It's a way of life."
+- C. Scrutinizer
 
 ## Installation
 
