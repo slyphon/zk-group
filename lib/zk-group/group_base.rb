@@ -59,12 +59,14 @@ module ZK
         @known_members = []
         @membership_subscriptions = []
 
-        @membership_ev_sub = zk.register(path, :child) do |event|
-          broadcast_membership_change!(event)
+        @broadcast_callback = ThreadedCallback.new { |event| broadcast_membership_change!(event) }
+
+        @membership_ev_sub = zk.register(path, :only => :child) do |event|
+          @broadcast_callback.call(event)
         end
 
         @on_connected_sub = zk.on_connected do |event|
-          broadcast_membership_change!(event)
+          @broadcast_callback.call(event)
         end
 
         validate!
@@ -115,7 +117,8 @@ module ZK
             # is that the @known_members and @last_stat won't have been set up. we want
             # both of these methods available, so we need to set that state up here, but
             # only if create! fails in this particular way
-            set_initial_state!
+            @created = true
+            broadcast_membership_change!
             nil
           end
         end
@@ -132,7 +135,8 @@ module ZK
         synchronize do
           zk.create(path, data).tap do
             logger.debug { "create!(#{path.inspect}, #{data.inspect}) succeeded, setting initial state" }
-            set_initial_state!
+            @created = true
+            broadcast_membership_change!
           end
         end
       end
@@ -178,8 +182,6 @@ module ZK
       # callback sees in order. They just may receive the notifications at
       # different times.
       #
-      # XXX ^^ This is a lie ^^ XXX
-      #
       # @note Due to the way ZooKeeper works, it's possible that you may not see every 
       #   change to the membership of the group. That is *very* important to know. 
       #   ZooKeeper _may batch updates_, so you can see a jump of members, especially
@@ -213,47 +215,34 @@ module ZK
       end
       
       # @private
-      def broadcast_membership_change!(_ignored)
+      def broadcast_membership_change!(_ignored=nil)
         logger.debug { "#{__method__} received event #{_ignored.inspect}" }
-        synchronize do
+        
+        # we might get an on_connected event before creation
+        unless created?
+          logger.debug { "uh, created? #{created?} so returning" }
+          return
+        end
 
-          # we might get an on_connected event before creation
-          unless created?
-            logger.debug { "uh, created? #{created?} so returning" }
-            return
-          end
+        last_members, @known_members = @known_members, member_names(:watch => true)
 
-          last_members, @known_members = @known_members, member_names(:watch => true)
+        logger.debug { "last_members: #{last_members.inspect}" }
+        logger.debug { "@known_members: #{@known_members.inspect}" }
 
-          logger.debug { "last_members: #{last_members.inspect}" }
-          logger.debug { "@known_members: #{@known_members.inspect}" }
-
-          # we do this check so that on a connected event, we can run this callback
-          # without producing false positives
-          #
-          if last_members == @known_members
-            logger.debug { "membership data did not actually change, not notifying" }
-          else
-            @membership_subscriptions.each do |sub|
-              lm, km = last_members.dup, @known_members.dup
-              zk.defer { sub.notify(lm, km) }
-            end
+        # we do this check so that on a connected event, we can run this callback
+        # without producing false positives
+        #
+        if last_members == @known_members
+          logger.debug { "membership data did not actually change, not notifying" }
+        else
+          @membership_subscriptions.each do |sub|
+            lm, km = last_members.dup, @known_members.dup
+            sub.notify(lm, km)
           end
         end
       end
 
       protected
-        def set_initial_state!
-          synchronize do
-            logger.debug { "creating initial state!" }
-
-            @created  = true
-            @known_members = member_names
-
-            logger.debug { "initial state set" }
-          end
-        end
-
         # Creates a Member instance for this Group. This its own method to allow
         # subclasses to override. By default, uses MemberBase
         def create_member(znode_path)

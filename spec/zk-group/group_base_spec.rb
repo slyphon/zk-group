@@ -78,67 +78,66 @@ describe ZK::Group::GroupBase do
   end # join
 
   describe :on_membership_change do
-    before do
-      @events = []
+    before { @events = [] }
 
-      subject.on_membership_change do |old,cur|
-        @events << [old,cur]
+    describe 'with default options' do
+      before do
+        subject.on_membership_change do |old,cur|
+          @events << [old,cur]
+        end
+
+        subject.create!
       end
 
-      subject.create!
-    end
+      it %[should return an object with an unsubscribe method] do
+        sub = subject.on_membership_change { |old,cur| }
 
-    it %[should return an object with an unsubscribe method] do
-      sub = subject.on_membership_change { |old,cur| }
-
-      sub.should respond_to(:unsubscribe)
-    end
-
-    it %[should deliver when the membership changes] do
-      subject.should be_created
-
-      member = subject.join
-      wait_while { @events.empty? }
-      @events.length.should == 1
-
-      old, cur = @events.first
-
-      old.should be_empty
-      cur.length.should == 1
-      cur.first.should match(/\Am\d+\Z/)
-    end
-
-    it %[should deliver notification when a member joins or leaves] do
-      subject.should be_created
-
-      members = []
-
-      10.times { members << subject.join }
-
-      # wait until we've received notification that includes our last created member
-      wait_until { @events.last.last.length == 10 }
-
-      # there should be a difference in the size of the group
-      # this won't always be true, but in this case it should be
-      @events.each do |old,cur|
-        old.length.should < cur.length
+        sub.should respond_to(:unsubscribe)
       end
 
-      @events.clear
+      it %[should deliver when the membership changes] do
+        subject.should be_created
 
-      members.each { |m| m.leave }
+        member = subject.join
+        wait_while { @events.empty? }
+        @events.length.should == 1
 
-      # wait until we've received notification that includes our last created member
-      wait_until { @events.last.last.empty? }
+        old, cur = @events.first
 
-      @events.each do |old,cur|
-        old.length.should > cur.length
+        old.should be_empty
+        cur.length.should == 1
+        cur.first.should match(/\Am\d+\Z/)
       end
-    end
 
-    it %[should deliver all events to all listeners in order] do
-      pending("this should probably be true, but isn't yet") do
+      it %[should deliver notification when a member joins or leaves] do
+        subject.should be_created
 
+        members = []
+
+        10.times { members << subject.join }
+
+        # wait until we've received notification that includes our last created member
+        wait_until { @events.last.last.length == 10 }
+
+        # there should be a difference in the size of the group
+        # this won't always be true, but in this case it should be
+        @events.each do |old,cur|
+          old.length.should < cur.length
+        end
+
+        @events.clear
+
+        members.each { |m| m.leave }
+
+        # wait until we've received notification that includes our last created member
+        wait_until { @events.last.last.empty? }
+
+        @events.each do |old,cur|
+          old.length.should > cur.length
+        end
+      end
+
+      it %[should deliver all events to all listeners in order] do
         other_events = []
         mutex = Monitor.new
         offset = 10
@@ -151,18 +150,34 @@ describe ZK::Group::GroupBase do
           mutex.synchronize { saw_six = (cur.length == 6) }
         end
 
-        # MOAR CONCURRENCY!
-        @zk.threadpool.grow!(5)
-
         6.times { subject.join }
 
         wait_until { @events.last.last.length == 6 }
-
         wait_until { @events.length == other_events.length }
 
         @events.should == other_events
+      end # in order
+    end # default options
 
+    describe 'with :absolute => true' do
+      before do
+        subject.on_membership_change(:absolute => true) do |old,cur|
+          @events << [old,cur]
+        end
+
+        subject.create!
       end
-    end
+
+      it %[should deliver the members as absolute paths if the :absolute option is true] do
+        member = subject.join
+
+        wait_while { @events.empty? }
+        @events.length.should == 1
+
+        old, cur = @events.first
+
+        cur.first.should start_with('/')
+      end
+    end # absolute
   end # on_membership_changed
 end # ZK::Group::Base

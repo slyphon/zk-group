@@ -1,5 +1,7 @@
 source :rubygems
 
+gem 'zk', :path => '~/zk'
+
 gem 'pry', :group => [:development, :test]
 
 group :test do

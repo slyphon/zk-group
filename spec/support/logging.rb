@@ -1,7 +1,5 @@
 module ZK
-#   LOG_FILE = File.open(File.join(ZK::ZK_ROOT, 'test.log'), 'a').tap { |f| f.sync = true }
-  LOG_FILE = File.join(ZK::ZK_ROOT, 'test.log')
-#   LOG_FILE = $stderr
+  LOG_FILE = File.expand_path('../../../test.log', __FILE__)
 end
 
 ZK.logger = Logger.new(ZK::LOG_FILE).tap { |log| log.level = Logger::DEBUG }
