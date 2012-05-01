@@ -46,6 +46,9 @@ module ZK
       def initialize(zk, name, opts={})
         @orig_zk    = zk
         @zk         = GroupExceptionTranslator.new(zk, self)
+
+        raise ArgumentError, "name must not be nil" unless name
+
         @name       = name.to_s
         @root       = opts.fetch(:root, DEFAULT_ROOT)
         @prefix     = opts.fetch(:prefix, DEFAULT_PREFIX)

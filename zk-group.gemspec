@@ -20,5 +20,5 @@ Part of the ZK project.
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.name          = "zk-group"
   s.require_paths = ["lib"]
-  s.version       = Zk::Group::VERSION
+  s.version       = ZK::Group::VERSION
 end

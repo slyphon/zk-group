@@ -1,3 +1,5 @@
+require 'thread'
+require 'forwardable'
 
 require 'zk'
 
@@ -72,6 +74,8 @@ module ZK
 end # ZK
 
 require 'zk-group/version'
+require 'zk-group/exceptions'
+require 'zk-group/membership_subscription'
 require 'zk-group/group_base'
 require 'zk-group/member_base'
 
