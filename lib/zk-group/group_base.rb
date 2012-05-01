@@ -59,6 +59,8 @@ module ZK
         @known_members = []
         @membership_subscriptions = []
 
+        # ThreadedCallback will queue calls to the block and deliver them one at a time
+        # on their own thread. This guarantees order and simplifies locking.
         @broadcast_callback = ThreadedCallback.new { |event| broadcast_membership_change!(event) }
 
         @membership_ev_sub = zk.register(path, :only => :child) do |event|
@@ -78,6 +80,8 @@ module ZK
         synchronize do
           return unless @created
           @created = false
+
+          @broadcast_callback.shutdown
 
           @on_connected_sub.unsubscribe
           @membership_ev_sub.unsubscribe
