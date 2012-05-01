@@ -1,17 +1,24 @@
 # -*- encoding: utf-8 -*-
 require File.expand_path('../lib/zk-group/version', __FILE__)
 
-Gem::Specification.new do |gem|
-  gem.authors       = ["Jonathan D. Simms"]
-  gem.email         = ["slyphon@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+Gem::Specification.new do |s|
+  s.authors       = ["Jonathan D. Simms"]
+  s.email         = ["slyphon@gmail.com"]
+  s.description   = %q{A Group abstraction on top of the high-level ZooKeeper library ZK}
+  s.summary       = %q{
+Provides Group-like behaviors such as listing members of a group, joining,
+leaving, and notifications when group memberhsip changes
+  
+Part of the ZK project.
+}
+  s.homepage      = "https://github.com/slyphon/zk-group"
 
-  gem.files         = `git ls-files`.split($\)
-  gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
-  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "zk-group"
-  gem.require_paths = ["lib"]
-  gem.version       = Zk::Group::VERSION
+  s.add_runtime_dependency 'zk', '>= 1.0.0'
+
+  s.files         = `git ls-files`.split($\)
+  s.executables   = s.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
+  s.test_files    = s.files.grep(%r{^(test|spec|features)/})
+  s.name          = "zk-group"
+  s.require_paths = ["lib"]
+  s.version       = Zk::Group::VERSION
 end
