@@ -6,7 +6,7 @@ module ZK
 
     # The basis for forming different kinds of Groups with customizable
     # memberhip policies.
-    class GroupBase
+    class Group
       extend Forwardable
       include Logging
       include Common
@@ -248,10 +248,10 @@ module ZK
 
       protected
         # Creates a Member instance for this Group. This its own method to allow
-        # subclasses to override. By default, uses MemberBase
+        # subclasses to override. By default, uses Member
         def create_member(znode_path)
           logger.debug { "created member #{znode_path.inspect} returning object" }
-          MemberBase.new(@orig_zk, self, znode_path)
+          Member.new(@orig_zk, self, znode_path)
         end
 
         def ensure_root_exists!
@@ -261,7 +261,7 @@ module ZK
         def validate!
           raise ArgumentError, "root must start with '/'" unless @root.start_with?('/')
         end
-    end # GroupBase
+    end # Group
   end # Group
 end # ZK
 

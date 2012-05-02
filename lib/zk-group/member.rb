@@ -1,6 +1,6 @@
 module ZK
   module Group
-    class MemberBase
+    class Member
       include Common
 
       attr_reader :zk 

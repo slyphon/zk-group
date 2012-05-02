@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ZK::Group::GroupBase do
+describe ZK::Group::Group do
   include_context 'connections'
 
   let(:group_name) { 'the_mothers' }
@@ -73,7 +73,7 @@ describe ZK::Group::GroupBase do
 
     it %[should return a Member object if the join succeeds] do
       subject.create!
-      subject.join.should be_kind_of(ZK::Group::MemberBase)
+      subject.join.should be_kind_of(ZK::Group::Member)
     end
   end # join
 
