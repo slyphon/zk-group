@@ -1,17 +1,15 @@
 module ZK
   module Group
-    class MembershipSubscription
+    class MembershipSubscription < ZK::Subscription::Base
       include ZK::Logging
 
-      attr_reader :group, :opts
-      :callable
+      attr_reader :opts
+
+      alias group parent
 
       def initialize(group, opts, block)
-        raise ArgumentError, "block must repsond_to?(:call)" unless block.respond_to?(:call)
-        @group = group
+        super(group, block)
         @opts = opts
-        @callable = block
-        @threaded_callback = ThreadedCallback.new(block)
       end
 
       def notify(last_members, current_members)
@@ -24,18 +22,14 @@ module ZK
           current_members = current_members.map { |m| File.join(group_path, m) }
         end
 
-        @threaded_callback.call(last_members, current_members)
+        call(last_members, current_members)
       end
 
       def absolute_paths?
         opts[:absolute]
       end
 
-      def unregister
-        @threaded_callback.shutdown
-        group.unregister(self)
-      end
-      alias unsubscribe unregister
+      protected :call
     end
   end
 end

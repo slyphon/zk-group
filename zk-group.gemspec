@@ -13,7 +13,7 @@ Part of the ZK project.
 }
   s.homepage      = "https://github.com/slyphon/zk-group"
 
-  s.add_runtime_dependency 'zk', '~> 1.1.0'
+  s.add_runtime_dependency 'zk', '~> 1.6.0'
 
   s.files         = `git ls-files`.split($\)
   s.executables   = s.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
