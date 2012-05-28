@@ -1,7 +1,7 @@
 module ZK
   module Group
     def self.new(*args)
-      GroupBase.new(*args)
+      ZK::Group::Group.new(*args)
     end
 
     # The basis for forming different kinds of Groups with customizable
