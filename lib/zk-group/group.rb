@@ -153,13 +153,27 @@ module ZK
       # You may receive notification that the member was created before this method
       # returns your Member instance. "heads up"
       #
-      # @param data [String] (nil) the data this node should have to start
-      #   with, default is no data
+      # @overload join(opts={})
+      #   join the group and set the node's data to blank
+      #
+      #   @option opts [Class] :member_class (ZK::Group::Member) an alternate
+      #     class to manage membership in the group. 
+      #
+      # @overload join(data, opts={})
+      #   join the group and set the node's initial data
+      #
+      #   @option opts [Class] :member_class (ZK::Group::Member) an alternate
+      #     class to manage membership in the group. 
+      #
+      #   @param data [String] (nil) the data this node should have to start
+      #     with, default is no data
       #
       # @return [Member] used to control a single member of the group
-      def join(data=nil)
-        data ||= ''
-        create_member(zk.create("#{path}/#{prefix}", data, :sequence => true, :ephemeral => true))
+      #
+      def join(*args)
+        opts = args.extract_options!
+        data = args.first || ''
+        create_member(zk.create("#{path}/#{prefix}", data, :sequence => true, :ephemeral => true), opts[:member_class])
       end
 
       # returns the current list of member names, sorted.
@@ -253,9 +267,10 @@ module ZK
       private
         # Creates a Member instance for this Group. This its own method to allow
         # subclasses to override. By default, uses Member
-        def create_member(znode_path)
+        def create_member(znode_path, member_klass=nil)
+          member_klass ||= Member
           logger.debug { "created member #{znode_path.inspect} returning object" }
-          Member.new(@orig_zk, self, znode_path)
+          member_klass.new(@orig_zk, self, znode_path)
         end
 
         def ensure_root_exists!
