@@ -22,6 +22,14 @@ group :docs do
   end
 end
 
+group :development do
+  gem 'guard',          :require => false
+  gem 'guard-rspec',    :require => false
+  gem 'guard-bundler',  :require => false
+  
+  gem 'growl'  if `uname -s` =~ /darwin/i
+end
+
 # Specify your gem's dependencies in zk-group.gemspec
 gemspec
 

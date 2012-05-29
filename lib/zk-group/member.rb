@@ -19,6 +19,7 @@ module ZK
         @group = group
         @path = path
         @name = File.basename(@path)
+        @mutex = Mutex.new
       end
 
       # probably poor choice of name, but does this member still an active membership
@@ -33,11 +34,23 @@ module ZK
       # In the basic implementation, this is not meant to kick another member
       # out of the group.
       #
-      # @abstract Implement 'leaving' behavior in subclasses
       def leave
         zk.delete(path)
       end
-    end # MemberBase
+
+      def data
+        @mutex.synchronize do
+          @data ||= zk.get(path).first
+        end
+      end
+
+      def data=(data)
+        @mutex.synchronize do 
+          @data = data
+          zk.set(path, data)
+          data
+        end
+      end
+    end # Member
   end # Group
 end # ZK
-

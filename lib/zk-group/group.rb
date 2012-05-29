@@ -1,5 +1,10 @@
 module ZK
   module Group
+    DEFAULT_ROOT = '/_zk/groups'
+
+    # @private
+    DEFAULT_PREFIX = 'm'.freeze
+
     def self.new(*args)
       ZK::Group::Group.new(*args)
     end
@@ -13,11 +18,6 @@ module ZK
 
       def_delegators :@mutex, :synchronize
       protected :synchronize
-
-      DEFAULT_ROOT = '/_zk/groups'
-
-      # @private
-      DEFAULT_PREFIX = 'm'.freeze
 
       # the ZK Client instance
       attr_reader :zk
@@ -153,9 +153,13 @@ module ZK
       # You may receive notification that the member was created before this method
       # returns your Member instance. "heads up"
       #
+      # @param data [String] (nil) the data this node should have to start
+      #   with, default is no data
+      #
       # @return [Member] used to control a single member of the group
-      def join
-        create_member(zk.create("#{path}/#{prefix}", :sequence => true, :ephemeral => true))
+      def join(data=nil)
+        data ||= ''
+        create_member(zk.create("#{path}/#{prefix}", data, :sequence => true, :ephemeral => true))
       end
 
       # returns the current list of member names, sorted.
@@ -246,7 +250,7 @@ module ZK
         end
       end
 
-      protected
+      private
         # Creates a Member instance for this Group. This its own method to allow
         # subclasses to override. By default, uses Member
         def create_member(znode_path)
