@@ -39,17 +39,13 @@ module ZK
       end
 
       def data
-        @mutex.synchronize do
-          @data ||= zk.get(path).first
-        end
+        @data ||= zk.get(path).first
       end
 
       def data=(data)
-        @mutex.synchronize do 
-          @data = data
-          zk.set(path, data)
-          data
-        end
+        @data = data
+        zk.set(path, data)
+        data
       end
     end # Member
   end # Group
