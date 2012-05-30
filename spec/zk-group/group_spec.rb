@@ -27,6 +27,19 @@ describe ZK::Group::Group do
     end
   end # create
 
+  describe :exists? do
+    it %[should return false if the group has not been created] do
+      @zk.stat(subject.path).should_not exist
+      subject.should_not exist
+    end
+
+    it %[should return true if the group has been created] do
+      subject.create
+      @zk.stat(subject.path).should exist
+      subject.should exist
+    end
+  end
+
   describe :create! do
     it %[should raise GroupAlreadyExistsError if the group already exists] do
       @zk.mkdir_p(subject.path)

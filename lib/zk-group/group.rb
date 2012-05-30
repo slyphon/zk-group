@@ -1,9 +1,29 @@
 module ZK
   module Group
-    DEFAULT_ROOT = '/_zk/groups'
+    @@mutex = Mutex.new unless defined?(@@mutex)
 
+    DEFAULT_ROOT = '/_zk/groups'
+    
     # @private
     DEFAULT_PREFIX = 'm'.freeze
+
+    class << self
+      # @private
+      def mutex
+        @@mutex
+      end
+
+      # The path under which all groups will be created. 
+      # defaults to DEFAULT_ROOT if not set
+      def zk_root
+        @@mutex.synchronize { @@zk_root ||= DEFAULT_ROOT }
+      end
+
+      # Sets the default global zk root path.
+      def zk_root=(path)
+        @@mutex.synchronize { @@zk_root = path.dup.freeze }
+      end
+    end
 
     def self.new(*args)
       ZK::Group::Group.new(*args)
@@ -37,7 +57,7 @@ module ZK
       attr_accessor :last_stat
 
       # Prefix used for creating sequential nodes under {#path} that represent membership.
-      # The default is 'm', so for the path `/zkgroups/foo` a member path would look like
+      # The default is 'm', so for the path `/_zk/groups/foo` a member path would look like
       # `/zkgroups/foo/m000000078`
       #
       # @return [String] the prefix 
@@ -50,8 +70,8 @@ module ZK
         raise ArgumentError, "name must not be nil" unless name
 
         @name       = name.to_s
-        @root       = opts.fetch(:root, DEFAULT_ROOT)
-        @prefix     = opts.fetch(:prefix, DEFAULT_PREFIX)
+        @root       = opts[:root] || ZK::Group.zk_root
+        @prefix     = opts[:prefix] || DEFAULT_PREFIX
         @path       = File.join(@root, @name)
         @mutex      = Monitor.new
         @created    = false
@@ -94,6 +114,11 @@ module ZK
       # this is "are we set up" not "did *we* create the group"
       def created?
         synchronize { !!@created }
+      end
+
+      # does the group exist already?
+      def exists?
+        zk.exists?(path)
       end
 
       # creates this group, does not raise an exception if the group already
