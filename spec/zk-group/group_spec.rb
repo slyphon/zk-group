@@ -88,6 +88,12 @@ describe ZK::Group::Group do
       subject.create!
       subject.join.should be_kind_of(ZK::Group::Member)
     end
+
+    it %[should return just the path if :member_class => nil] do
+      subject.create!
+
+      subject.join(:member_class => nil).should match(%r%^#{subject.path}%)
+    end
   end # join
 
   describe :on_membership_change do
