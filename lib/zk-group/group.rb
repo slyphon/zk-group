@@ -108,6 +108,7 @@ module ZK
 
           @known_members.clear
           @membership_subscriptions.each(&:unsubscribe)
+          @orig_zk.delete(@path, :ignore => [:no_node, :not_empty])
         end
       end
 
