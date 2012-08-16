@@ -201,6 +201,8 @@ module ZK
       # @return [Member] used to control a single member of the group
       #
       def join(*args)
+        # TODO: clarify how the membership interacts with the group. if you
+        #       close the group what happens to the member?
         opts = args.extract_options!
         data = args.first || ''
         member_class = opts.fetch(:member_class, Member)
