@@ -269,28 +269,30 @@ module ZK
       
       # @private
       def broadcast_membership_change!(_ignored=nil)
-        logger.debug { "#{__method__} received event #{_ignored.inspect}" }
-        
-        # we might get an on_connected event before creation
-        unless created?
-          logger.debug { "uh, created? #{created?} so returning" }
-          return
-        end
+        synchronize do
+          logger.debug { "#{__method__} received event #{_ignored.inspect}" }
+          
+          # we might get an on_connected event before creation
+          unless created?
+            logger.debug { "uh, created? #{created?} so returning" }
+            return
+          end
 
-        last_members, @known_members = @known_members, member_names(:watch => true)
+          last_members, @known_members = @known_members, member_names(:watch => true)
 
-        logger.debug { "last_members: #{last_members.inspect}" }
-        logger.debug { "@known_members: #{@known_members.inspect}" }
+          logger.debug { "last_members: #{last_members.inspect}" }
+          logger.debug { "@known_members: #{@known_members.inspect}" }
 
-        # we do this check so that on a connected event, we can run this callback
-        # without producing false positives
-        #
-        if last_members == @known_members
-          logger.debug { "membership data did not actually change, not notifying" }
-        else
-          @membership_subscriptions.each do |sub|
-            lm, km = last_members.dup, @known_members.dup
-            sub.notify(lm, km)
+          # we do this check so that on a connected event, we can run this callback
+          # without producing false positives
+          #
+          if last_members == @known_members
+            logger.debug { "membership data did not actually change, not notifying" }
+          else
+            @membership_subscriptions.each do |sub|
+              lm, km = last_members.dup, @known_members.dup
+              sub.notify(lm, km)
+            end
           end
         end
       end
