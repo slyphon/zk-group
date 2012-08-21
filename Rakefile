@@ -28,7 +28,7 @@ if File.exists?(release_ops_path)
 
         raise "You must specify a TAG" unless ENV['TAG']
 
-        ReleaseOps.with_tmpdir(:prefix => 'zk') do |tmpdir|
+        ReleaseOps.with_tmpdir(:prefix => 'zk-group') do |tmpdir|
           tag = ENV['TAG']
 
           sh "git clone . #{tmpdir}"
@@ -38,7 +38,7 @@ if File.exists?(release_ops_path)
           cd tmpdir do
             sh "git co #{tag} && git reset --hard && git clean -fdx"
 
-            sh "rvm 1.8.7 do gem build zk.gemspec"
+            sh "rvm 1.8.7 do gem build zk-group.gemspec"
 
             mv FileList['*.gem'], orig_dir
           end
